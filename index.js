@@ -1,10 +1,9 @@
 require('dotenv').config();
 const fs = require('fs');
 const { Client, GatewayIntentBits } = require('discord.js');
-const cron = require('node-cron');
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds]
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
 });
 
 // Get the UTC offset for Europe/Paris at a given date (handles CET/CEST automatically)
@@ -23,17 +22,14 @@ function getNextSaturdayParis(hour, minute = 0) {
   const candidate = new Date(now);
   candidate.setDate(now.getDate() + daysUntilSat);
 
-  // Get the date string in Paris timezone (YYYY-MM-DD)
   const parisDateStr = candidate.toLocaleDateString('en-CA', { timeZone: 'Europe/Paris' });
 
-  // Build an approximate UTC time as if Paris == UTC, then correct for the offset
   const approxUTC = new Date(
     `${parisDateStr}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00Z`
   );
   const offsetMinutes = getParisOffsetMinutes(approxUTC);
   const targetUTC = new Date(approxUTC.getTime() - offsetMinutes * 60000);
 
-  // If that moment has already passed, push to next Saturday
   if (targetUTC <= now) {
     targetUTC.setDate(targetUTC.getDate() + 7);
   }
@@ -52,18 +48,22 @@ function generateMessage() {
   ].join('\n');
 }
 
-// Get or create the pinned bot message
+// Get or create the bot message
 async function getOrCreateMessage(channel) {
   const messageId = process.env.MESSAGE_ID;
 
   if (messageId) {
     try {
-      return await channel.messages.fetch(messageId);
+      const existing = await channel.messages.fetch(messageId);
+      if (existing) {
+        return existing;
+      }
     } catch {
       console.log('Saved message not found, creating a new one...');
     }
   }
 
+  // Send new message if MESSAGE_ID is missing or invalid
   const newMessage = await channel.send('Initializing...');
 
   // Write new ID to GITHUB_OUTPUT so the workflow can save it
@@ -76,12 +76,14 @@ async function getOrCreateMessage(channel) {
   return newMessage;
 }
 
-client.once('clientReady', async () => {
+// Main bot execution
+client.once('ready', async () => {
   console.log(`Logged in as ${client.user.tag}`);
 
   const channel = await client.channels.fetch(process.env.CHANNEL_ID);
   const message = await getOrCreateMessage(channel);
 
+  // Edit the message with new content
   await message.edit(generateMessage());
   console.log('Message updated, shutting down.');
 
