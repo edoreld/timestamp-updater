@@ -85,18 +85,10 @@ client.once('clientReady', async () => {
   const channel = await client.channels.fetch(process.env.CHANNEL_ID);
   const message = await getOrCreateMessage(channel);
 
-  // Update immediately on startup
   await message.edit(generateMessage());
+  console.log('Message updated, shutting down.');
 
-  // Re-update every day at midnight UTC (safe against restarts)
-  cron.schedule('0 0 * * *', async () => {
-    try {
-      await message.edit(generateMessage());
-      console.log('Message updated');
-    } catch (err) {
-      console.error('Update failed:', err);
-    }
-  });
+  client.destroy();
 });
 
 client.login(process.env.DISCORD_TOKEN);
