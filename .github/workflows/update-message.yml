@@ -8,7 +8,9 @@ on:
 jobs:
   update:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
+      actions: write
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
