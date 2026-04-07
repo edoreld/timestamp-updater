@@ -9,9 +9,6 @@ jobs:
   update:
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: write       # Needed to commit message.json back
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -26,15 +23,23 @@ jobs:
         run: npm ci
 
       - name: Run bot
+        id: bot
         env:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
+          MESSAGE_ID: ${{ vars.MESSAGE_ID }}
         run: node index.js
 
-      - name: Commit message.json if new
+      - name: Save new message ID as Actions variable
+        if: steps.bot.outputs.new_message_id != ''
         run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -f message.json
-          git diff --cached --quiet || git commit -m "chore: save message ID"
-          git push
+          curl -s -X PATCH \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/variables/MESSAGE_ID" \
+            -d "{\"name\":\"MESSAGE_ID\",\"value\":\"${{ steps.bot.outputs.new_message_id }}\"}" \
+          || curl -s -X POST \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/variables" \
+            -d "{\"name\":\"MESSAGE_ID\",\"value\":\"${{ steps.bot.outputs.new_message_id }}\"}"

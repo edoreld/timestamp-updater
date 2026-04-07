@@ -7,8 +7,6 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
-const MESSAGE_FILE = './message.json';
-
 // Get the UTC offset for Europe/Paris at a given date (handles CET/CEST automatically)
 function getParisOffsetMinutes(date) {
   const utc = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
@@ -56,12 +54,7 @@ function generateMessage() {
 
 // Get or create the pinned bot message
 async function getOrCreateMessage(channel) {
-  let messageId;
-
-  if (fs.existsSync(MESSAGE_FILE)) {
-    const data = JSON.parse(fs.readFileSync(MESSAGE_FILE));
-    messageId = data.messageId;
-  }
+  const messageId = process.env.MESSAGE_ID;
 
   if (messageId) {
     try {
@@ -73,9 +66,13 @@ async function getOrCreateMessage(channel) {
 
   const newMessage = await channel.send('Initializing...');
 
-  fs.writeFileSync(MESSAGE_FILE, JSON.stringify({ messageId: newMessage.id }));
-  console.log('Created new message with ID:', newMessage.id);
+  // Write new ID to GITHUB_OUTPUT so the workflow can save it
+  const output = process.env.GITHUB_OUTPUT;
+  if (output) {
+    fs.appendFileSync(output, `new_message_id=${newMessage.id}\n`);
+  }
 
+  console.log('Created new message with ID:', newMessage.id);
   return newMessage;
 }
 
