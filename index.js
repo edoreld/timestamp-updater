@@ -3,17 +3,15 @@ const fs = require('fs');
 const { Client, GatewayIntentBits } = require('discord.js');
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages]
+  intents: [GatewayIntentBits.Guilds]
 });
 
-// Get the UTC offset for Europe/Paris (handles CET/CEST automatically)
 function getParisOffsetMinutes(date) {
   const utc = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
   const paris = new Date(date.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
   return (paris - utc) / 60000;
 }
 
-// Compute Unix timestamp of the next Saturday at a given Paris local time
 function getNextSaturdayParis(hour, minute = 0) {
   const now = new Date();
   const day = now.getDay();
@@ -37,10 +35,9 @@ function getNextSaturdayParis(hour, minute = 0) {
   return Math.floor(targetUTC.getTime() / 1000);
 }
 
-// Generate the message content from scratch
 function generateMessage() {
-  const tsAV  = getNextSaturdayParis(15); // 15:00 Paris
-  const tsDoD = getNextSaturdayParis(19); // 19:00 Paris
+  const tsAV  = getNextSaturdayParis(15);
+  const tsDoD = getNextSaturdayParis(19);
 
   return [
     `Next **Abomination Vaults** session: <t:${tsAV}:F>`,
@@ -53,39 +50,31 @@ client.once('ready', async () => {
 
   try {
     const channel = await client.channels.fetch(process.env.CHANNEL_ID);
-    const messageId = process.env.MESSAGE_ID;
-    let targetMessage = null;
+    const oldMessageId = process.env.MESSAGE_ID;
 
-    // 1. Try to fetch the existing message (ignore if dummy '1' or 'null')
-    if (messageId && messageId !== "1" && messageId !== "null") {
+    // 1. Delete the old message if it exists
+    if (oldMessageId && oldMessageId !== "1" && oldMessageId !== "null") {
       try {
-        targetMessage = await channel.messages.fetch(messageId);
-        console.log('Existing message found. Updating...');
+        const oldMsg = await channel.messages.fetch(oldMessageId);
+        await oldMsg.delete();
+        console.log('Old message deleted.');
       } catch (err) {
-        console.log('Saved message ID not found on Discord. Creating fresh...');
+        console.log('Could not find old message to delete (it might already be gone).');
       }
     }
 
-    const content = generateMessage();
+    // 2. Send the brand new message
+    const newMessage = await channel.send(generateMessage());
+    console.log('New message sent.');
 
-    // 2. Edit or Send
-    if (targetMessage) {
-      await targetMessage.edit(content);
-    } else {
-      targetMessage = await channel.send(content);
-      console.log('New message sent.');
-    }
-
-    // 3. ALWAYS output the ID back to GitHub Actions
-    // This ensures the workflow has the ID to "patch" into the repository variable
+    // 3. Export the new ID to GitHub Actions so it can be deleted next time
     const output = process.env.GITHUB_OUTPUT;
     if (output) {
-      fs.appendFileSync(output, `new_message_id=${targetMessage.id}\n`);
-      console.log(`Exported ID ${targetMessage.id} to GitHub Actions.`);
+      fs.appendFileSync(output, `new_message_id=${newMessage.id}\n`);
     }
 
   } catch (error) {
-    console.error('Fatal error:', error);
+    console.error('Error:', error);
     process.exit(1);
   }
 
