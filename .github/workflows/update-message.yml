@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      actions: write
+      actions: write       # Required to update repository variables
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -33,15 +33,10 @@ jobs:
         run: node index.js
 
       - name: Save new message ID as Actions variable
+        # Only runs if the bot actually output a new_message_id
         if: steps.bot.outputs.new_message_id != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW_ID: ${{ steps.bot.outputs.new_message_id }}
         run: |
-          curl -s -X PATCH \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/variables/MESSAGE_ID" \
-            -d "{\"name\":\"MESSAGE_ID\",\"value\":\"${{ steps.bot.outputs.new_message_id }}\"}" \
-          || curl -s -X POST \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/variables" \
-            -d "{\"name\":\"MESSAGE_ID\",\"value\":\"${{ steps.bot.outputs.new_message_id }}\"}"
+          gh variable set MESSAGE_ID --body "$NEW_ID"
