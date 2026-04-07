@@ -50,27 +50,32 @@ client.once('ready', async () => {
 
   try {
     const channel = await client.channels.fetch(process.env.CHANNEL_ID);
-    const oldMessageId = process.env.MESSAGE_ID;
+    const messageId = process.env.MESSAGE_ID;
+    const content = generateMessage();
+    let targetMessage = null;
 
-    // 1. Delete the old message if it exists
-    if (oldMessageId && oldMessageId !== "1" && oldMessageId !== "null") {
+    // 1. Try to fetch the existing message to edit
+    if (messageId && messageId !== "1" && messageId !== "null") {
       try {
-        const oldMsg = await channel.messages.fetch(oldMessageId);
-        await oldMsg.delete();
-        console.log('Old message deleted.');
+        targetMessage = await channel.messages.fetch(messageId);
+        await targetMessage.edit(content);
+        console.log('Existing message edited successfully.');
       } catch (err) {
-        console.log('Could not find old message to delete (it might already be gone).');
+        console.log('Message ID found in variables, but message no longer exists in Discord.');
       }
     }
 
-    // 2. Send the brand new message
-    const newMessage = await channel.send(generateMessage());
-    console.log('New message sent.');
+    // 2. If no message was edited, send a fresh one
+    if (!targetMessage) {
+      targetMessage = await channel.send(content);
+      console.log('New message sent.');
 
-    // 3. Export the new ID to GitHub Actions so it can be deleted next time
-    const output = process.env.GITHUB_OUTPUT;
-    if (output) {
-      fs.appendFileSync(output, `new_message_id=${newMessage.id}\n`);
+      // 3. Export the NEW ID to GitHub Actions so it can be edited next time
+      const output = process.env.GITHUB_OUTPUT;
+      if (output) {
+        fs.appendFileSync(output, `new_message_id=${targetMessage.id}\n`);
+        console.log(`Sent new ID ${targetMessage.id} to GitHub Actions output.`);
+      }
     }
 
   } catch (error) {
