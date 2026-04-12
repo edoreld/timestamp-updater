@@ -6,6 +6,10 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
+const REST_DAYS = [
+  '2025-04-18',
+];
+
 function getParisOffsetMinutes(date) {
   const utc = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
   const paris = new Date(date.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
@@ -20,19 +24,22 @@ function getNextSaturdayParis(hour, minute = 0) {
   const candidate = new Date(now);
   candidate.setDate(now.getDate() + daysUntilSat);
 
-  const parisDateStr = candidate.toLocaleDateString('en-CA', { timeZone: 'Europe/Paris' });
+  // Keep skipping forward by a week until we land on a non-rest Saturday
+  while (true) {
+    const parisDateStr = candidate.toLocaleDateString('en-CA', { timeZone: 'Europe/Paris' });
 
-  const approxUTC = new Date(
-    `${parisDateStr}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00Z`
-  );
-  const offsetMinutes = getParisOffsetMinutes(approxUTC);
-  const targetUTC = new Date(approxUTC.getTime() - offsetMinutes * 60000);
+    if (!REST_DAYS.includes(parisDateStr)) {
+      const approxUTC = new Date(
+        `${parisDateStr}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00Z`
+      );
+      const offsetMinutes = getParisOffsetMinutes(approxUTC);
+      const targetUTC = new Date(approxUTC.getTime() - offsetMinutes * 60000);
 
-  if (targetUTC <= now) {
-    targetUTC.setDate(targetUTC.getDate() + 7);
+      if (targetUTC > now) return Math.floor(targetUTC.getTime() / 1000);
+    }
+
+    candidate.setDate(candidate.getDate() + 7);
   }
-
-  return Math.floor(targetUTC.getTime() / 1000);
 }
 
 function generateMessage() {
