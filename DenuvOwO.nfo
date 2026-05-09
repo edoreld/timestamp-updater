@@ -1,0 +1,78 @@
+  ▄▄▄▄▄▄                              ▄▄▄▄               ▄▄▄▄    
+ █▀██▀▀██                           ▄█▀▀████▄          ▄█▀▀████▄ 
+   ██   ██       ▄                  ██    ██           ██    ██  
+   ██   ██ ▄█▀█▄ ████▄ ██ ██▀█▄ ██▀ ██    ██▀█▄ █▄ ██▀ ██    ██  
+   ██   ██ ██▄█▀ ██ ██ ██ ██ ██▄██  ██    ██ ██▄██▄██  ██    ██  
+ ▀██▀███▀ ▄▀█▄▄▄▄██ ▀█▄▀██▀█  ▀█▀    ▀████▀   ▀██▀██▀   ▀████▀   
+
+
+                     P  R  E  S  E  N  T  S
+
+
+ █████▄  ██████ ██     ██████ ▄████▄ ▄█████ ██████   ██ ███  ██ ██████ ▄████▄     
+ ██▄▄██▄ ██▄▄   ██     ██▄▄   ██▄▄██ ▀▀▀▄▄▄ ██▄▄     ██ ██ ▀▄██ ██▄▄   ██  ██     
+ ██   ██ ██▄▄▄▄ ██████ ██▄▄▄▄ ██  ██ █████▀ ██▄▄▄▄   ██ ██   ██ ██     ▀████▀     
+
+ ════════════════════════════════════════════════════════════════════════════
+ ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ ════════════════════════════════════════════════════════════════════════════
+ 
+ ┌────────────────────────────────────────────────────────────────────────────────────┐
+ │ GAME           : PRAGMATA                                                          │
+ │ PUBLISHER      : CAPCOM Co., Ltd.                                                  │
+ │ RELEASE DATE   : 2026/04                                                           │
+ │ PROTECTION     : Denuvo + SecureDLC + Capcom Anti-Tamper + Steam                   │
+ │ STORE          : https://store.steampowered.com/app/3357650/PRAGMATA/              │
+ └────────────────────────────────────────────────────────────────────────────────────┘
+
+ GAME NOTES ───────────────────────────────────────────────────────────────────────────
+
+ Pragmata is a unique, sci-fi action-adventure game from Capcom. Follow Hugh, a member
+ of an ill-fated investigation team, and Diana, a young android, as they navigate a
+ lunar facility taken over by rogue AI in search of a way to Earth.
+ 
+
+ ██ ███  ██ ▄█████ ██████ ▄████▄ ██     ██       ███  ██ ▄████▄ ██████ ██████ ▄█████ 
+ ██ ██ ▀▄██ ▀▀▀▄▄▄   ██   ██▄▄██ ██     ██       ██ ▀▄██ ██  ██   ██   ██▄▄   ▀▀▀▄▄▄ 
+ ██ ██   ██ █████▀   ██   ██  ██ ██████ ██████   ██   ██ ▀████▀   ██   ██▄▄▄▄ █████▀ 
+
+ ═══════════════════════════════════════════════════════════════════════════════════
+ ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ ═══════════════════════════════════════════════════════════════════════════════════
+ 
+ READ EVERYTHING BELOW BEFORE INSTALLING
+ 
+ Copy the contents of the "DenuvOwO" folder to the game folder.
+
+ Hypervisor releases require specific security features to be disabled.
+ To prepare your system for the hypervisor, run VBS.cmd as administrator.
+
+ Read the displayed information carefully before proceeding.
+ After you are done playing the game, it is highly recommended to revert the changes.
+
+ Hypervisor driver source codes are in the DenuvOwO_SRC_V5.rar
+ The source code archive is for advanced users, you don't need to open or copy it.
+ 
+ When AutoLoadHV is enabled, the HV will be automatically loaded/unloaded, which
+ requires administrator rights (you will see a UAC prompt for RunDll32.exe)
+
+ If AutoLoadHV is disabled, you don't have to run the game with admin privileges.
+ In this case, you need to create and manage the driver service like in the example.
+ This info is included for advanced users.
+
+ Mentioned driver files are included in the DenuvOwO folder, set your directory.
+ Use the following commands in a administrator command prompt.
+ 
+ sc create SimpleSvm type= kernel binPath= "C:\Users\Test\Desktop\SVM\SimpleSvm.sys"
+ sc start SimpleSvm 
+
+ sc stop SimpleSvm  [After exiting the game]
+ sc delete SimpleSvm
+
+ Intel driver file name is hyperkd.sys. You need the other hyperdbg files next to it.
+ These file names all start with "hyper".
+
+ If you have BitLocker, have your recovery key available as it might be sensitive.
+ Same goes for Windows Hello if you are using it, have your normal login method ready.
+ 
+ ════════════════════════════════════════════════════════════════════════════════════

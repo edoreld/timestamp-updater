@@ -8,7 +8,8 @@ const client = new Client({
 
 const REST_DAYS = [
   '2026-04-18',
-  '2026-05-02'
+  '2026-05-02',
+  '2026-05-09'
 ];
 
 function getParisOffsetMinutes(date) {
