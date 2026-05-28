@@ -9,7 +9,8 @@ const client = new Client({
 // --- Separate Rest Days for each campaign ---
 const AV_REST_DAYS = [
   '2026-04-18',
-  '2026-05-02'
+  '2026-05-02',
+  '2026-05-30'
 ];
 
 const DOD_REST_DAYS = [
