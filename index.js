@@ -1,20 +1,21 @@
 require('dotenv').config();
 const fs = require('fs');
 const { Client, GatewayIntentBits } = require('discord.js');
+
 const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
-const REST_DAYS = {
-  abominationVaults: [
-    '2026-04-18',
-    '2026-05-02',
-    '2026-05-30'
-  ],
-  dungeonsOfDrakkenheim: [
-    '2026-05-09',
-  ],
-};
+// --- Separate Rest Days for each campaign ---
+const AV_REST_DAYS = [
+  '2026-04-18',
+  '2026-05-02'
+];
+
+const DOD_REST_DAYS = [
+  '2026-05-02',
+  '2026-05-09'
+];
 
 function getParisOffsetMinutes(date) {
   const utc = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
@@ -22,21 +23,27 @@ function getParisOffsetMinutes(date) {
   return (paris - utc) / 60000;
 }
 
-function getNextSaturdayParis(hour, restDays, minute = 0) {
+// --- Modified to accept a campaign-specific rest days array ---
+function getNextSaturdayParis(hour, minute = 0, restDaysArray = []) {
   const now = new Date();
   const day = now.getDay();
   let daysUntilSat = (6 - day + 7) % 7;
+  
   const candidate = new Date(now);
   candidate.setDate(now.getDate() + daysUntilSat);
 
+  // Keep skipping forward by a week until we land on a non-rest Saturday
   while (true) {
     const parisDateStr = candidate.toLocaleDateString('en-CA', { timeZone: 'Europe/Paris' });
-    if (!restDays.includes(parisDateStr)) {
+    
+    // Check against the campaign-specific rest days passed in
+    if (!restDaysArray.includes(parisDateStr)) {
       const approxUTC = new Date(
         `${parisDateStr}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00Z`
       );
       const offsetMinutes = getParisOffsetMinutes(approxUTC);
       const targetUTC = new Date(approxUTC.getTime() - offsetMinutes * 60000);
+      
       if (targetUTC > now) return Math.floor(targetUTC.getTime() / 1000);
     }
     candidate.setDate(candidate.getDate() + 7);
@@ -44,8 +51,10 @@ function getNextSaturdayParis(hour, restDays, minute = 0) {
 }
 
 function generateMessage() {
-  const tsAV  = getNextSaturdayParis(15, REST_DAYS.abominationVaults);
-  const tsDoD = getNextSaturdayParis(19, REST_DAYS.dungeonsOfDrakkenheim);
+  // Pass the respective rest day arrays into the function
+  const tsAV  = getNextSaturdayParis(15, 0, AV_REST_DAYS);
+  const tsDoD = getNextSaturdayParis(19, 0, DOD_REST_DAYS);
+
   return [
     `Next **Abomination Vaults** session: <t:${tsAV}:F>`,
     `Next **Dungeons of Drakkenheim** session: <t:${tsDoD}:F>`,
@@ -54,7 +63,6 @@ function generateMessage() {
 
 client.once('ready', async () => {
   console.log(`Logged in as ${client.user.tag}`);
-
   try {
     const channel = await client.channels.fetch(process.env.CHANNEL_ID);
     const messageId = process.env.MESSAGE_ID;
@@ -84,11 +92,11 @@ client.once('ready', async () => {
         console.log(`Sent new ID ${targetMessage.id} to GitHub Actions output.`);
       }
     }
-
   } catch (error) {
     console.error('Error:', error);
     process.exit(1);
   }
-
   client.destroy();
 });
+
+client.login(process.env.DISCORD_TOKEN);
