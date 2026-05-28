@@ -9,13 +9,10 @@ const REST_DAYS = {
   abominationVaults: [
     '2026-04-18',
     '2026-05-02',
-    '2026-05-09',
     '2026-05-30'
   ],
   dungeonsOfDrakkenheim: [
-    '2026-04-18',
-    '2026-05-02',
-    '2026-05-09'
+    '2026-05-09',
   ],
 };
 
@@ -55,4 +52,43 @@ function generateMessage() {
   ].join('\n');
 }
 
-// ... rest of the code unchanged
+client.once('ready', async () => {
+  console.log(`Logged in as ${client.user.tag}`);
+
+  try {
+    const channel = await client.channels.fetch(process.env.CHANNEL_ID);
+    const messageId = process.env.MESSAGE_ID;
+    const content = generateMessage();
+    let targetMessage = null;
+
+    // 1. Try to fetch the existing message to edit
+    if (messageId && messageId !== "1" && messageId !== "null") {
+      try {
+        targetMessage = await channel.messages.fetch(messageId);
+        await targetMessage.edit(content);
+        console.log('Existing message edited successfully.');
+      } catch (err) {
+        console.log('Message ID found in variables, but message no longer exists in Discord.');
+      }
+    }
+
+    // 2. If no message was edited, send a fresh one
+    if (!targetMessage) {
+      targetMessage = await channel.send(content);
+      console.log('New message sent.');
+
+      // 3. Export the NEW ID to GitHub Actions so it can be edited next time
+      const output = process.env.GITHUB_OUTPUT;
+      if (output) {
+        fs.appendFileSync(output, `new_message_id=${targetMessage.id}\n`);
+        console.log(`Sent new ID ${targetMessage.id} to GitHub Actions output.`);
+      }
+    }
+
+  } catch (error) {
+    console.error('Error:', error);
+    process.exit(1);
+  }
+
+  client.destroy();
+});
