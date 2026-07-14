@@ -10,12 +10,14 @@ const client = new Client({
 const AV_REST_DAYS = [
   '2026-04-18',
   '2026-05-02',
-  '2026-05-30'
+  '2026-05-30',
+  '2026-07-18'
 ];
 
 const DOD_REST_DAYS = [
   '2026-05-02',
-  '2026-05-09'
+  '2026-05-09',
+  '2026-07-18'
 ];
 
 function getParisOffsetMinutes(date) {
