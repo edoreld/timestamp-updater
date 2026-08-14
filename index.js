@@ -17,7 +17,10 @@ const AV_REST_DAYS = [
 const DOD_REST_DAYS = [
   '2026-05-02',
   '2026-05-09',
-  '2026-07-18'
+  '2026-07-18',
+  '2026-08-15',
+  '2026-08-22',
+  '2026-08-29'
 ];
 
 function getParisOffsetMinutes(date) {
@@ -60,7 +63,7 @@ function generateMessage() {
 
   return [
     `Next **Abomination Vaults** session: <t:${tsAV}:F>`,
-    `Next **Dungeons of Drakkenheim** session: <t:${tsDoD}:F>`,
+    `Next **Season of Ghosts** session: <t:${tsDoD}:F>`,
   ].join('\n');
 }
 
